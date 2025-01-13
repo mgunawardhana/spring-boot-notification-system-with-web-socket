@@ -101,11 +101,8 @@
     </style>
 </head>
 <body>
-<h1>Real-Time Admin</h1>
-<div id="input-container">
-    <label for="message"></label><input id="message" placeholder="Enter your message" type="text">
-    <button onclick="sendMessage()">Send</button>
-</div>
+<h1>Client 1</h1>
+<div id="notifications"></div>
 
 <script>
     let stompClient = null;
@@ -124,14 +121,32 @@
         });
     }
 
-    function sendMessage() {
-        const message = document.getElementById('message').value;
-        if (stompClient && stompClient.connected) {
-            stompClient.send('/app/sendMessage', {}, message);
-            console.log('Message sent:', message);
-        } else {
-            console.error('WebSocket connection is not established.');
-        }
+    function showNotification(message) {
+        const notifications = document.getElementById('notifications');
+
+        const notification = document.createElement('div');
+        notification.classList.add('notification');
+
+        const icon = document.createElement('i');
+        icon.classList.add('fas', 'fa-envelope', 'icon');
+
+        const content = document.createElement('div');
+        content.classList.add('notification-content');
+
+        const text = document.createElement('p');
+        text.textContent = message;
+
+        const time = document.createElement('div');
+        time.classList.add('time');
+        time.textContent = new Date().toLocaleTimeString();
+
+        content.appendChild(text);
+
+        notification.appendChild(icon);
+        notification.appendChild(content);
+        notification.appendChild(time);
+
+        notifications.prepend(notification);
     }
 
     connect();

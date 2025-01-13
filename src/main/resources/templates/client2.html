@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Real-Time Notifications</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #input-container {
+      max-width: 400px;
+      margin: 20px auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    #message {
+      flex-grow: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #2ed573;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      font-size: 14px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1aa34a;
+    }
+
+    #notifications {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notification {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 10px 15px;
+      transition: all 0.3s ease;
+      border-left: 6px solid #2ed573;
+      position: relative;
+    }
+
+    .notification:hover {
+      background: #f1f9ff;
+    }
+
+    .icon {
+      color: #2ed573;
+      font-size: 24px;
+      margin-right: 10px;
+    }
+
+    .notification-content {
+      flex-grow: 1;
+    }
+
+    .notification-content p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .time {
+      font-size: 12px;
+      color: #666;
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+    }
+  </style>
+</head>
+<body>
+<h1>Client 2</h1>
+<div id="notifications"></div>
+
+<script>
+  let stompClient = null;
+
+  function connect() {
+    const socket = new SockJS('http://localhost:8080/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+      console.log('Connected: ' + frame);
+      stompClient.subscribe('/topic/notifications', function (message) {
+        showNotification(message.body);
+      });
+    }, function (error) {
+      console.error('WebSocket connection error: ' + error);
+    });
+  }
+
+  function showNotification(message) {
+    const notifications = document.getElementById('notifications');
+
+    const notification = document.createElement('div');
+    notification.classList.add('notification');
+
+    const icon = document.createElement('i');
+    icon.classList.add('fas', 'fa-envelope', 'icon');
+
+    const content = document.createElement('div');
+    content.classList.add('notification-content');
+
+    const text = document.createElement('p');
+    text.textContent = message;
+
+    const time = document.createElement('div');
+    time.classList.add('time');
+    time.textContent = new Date().toLocaleTimeString();
+
+    content.appendChild(text);
+
+    notification.appendChild(icon);
+    notification.appendChild(content);
+    notification.appendChild(time);
+
+    notifications.prepend(notification);
+  }
+
+  connect();
+</script>
+</body>
+</html>
