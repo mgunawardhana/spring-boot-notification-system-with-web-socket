@@ -108,25 +108,75 @@
 </div>
 
 <script>
+    /**
+     * @type {Stomp.Client | null}
+     * Holds the STOMP client instance for managing WebSocket connections.
+     */
     let stompClient = null;
 
+    /**
+     * Establishes a WebSocket connection using SockJS and STOMP, and subscribes to a topic for receiving notifications.
+     */
     function connect() {
+        // Create a SockJS connection to the server WebSocket endpoint
         const socket = new SockJS('http://localhost:8080/ws');
+
+        // Create a STOMP client over the SockJS connection
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/notifications', function (message) {
-                showNotification(message.body);
-            });
-        }, function (error) {
-            console.error('WebSocket connection error: ' + error);
-        });
+        /**
+         * Connect the STOMP client to the server.
+         * @param {Object} headers - Optional headers for the connection.
+         * @param {Function} onConnect - Callback function for a successful connection.
+         * @param {Function} onError - Callback function for connection errors.
+         */
+        stompClient.connect({},
+            /**
+             * Callback executed upon successful connection.
+             * @param {string} frame - Connection frame details.
+             */
+            function (frame) {
+                console.log('Connected: ' + frame);
+
+                /**
+                 * Subscribe to the '/topic/notifications' topic to listen for messages.
+                 * @param {string} destination - The topic to subscribe to.
+                 * @param {Function} callback - Function to process received messages.
+                 */
+                stompClient.subscribe('/topic/notifications',
+                    /**
+                     * Processes received messages and displays them.
+                     * @param {Object} message - The received message.
+                     */
+                    function (message) {
+                        showNotification(message.body);
+                    }
+                );
+            },
+            /**
+             * Callback executed if the connection fails.
+             * @param {string} error - The error message or object.
+             */
+            function (error) {
+                console.error('WebSocket connection error: ' + error);
+            }
+        );
     }
 
+    /**
+     * Sends a message to the server through the WebSocket connection.
+     */
     function sendMessage() {
+        // Get the message content from the input field
         const message = document.getElementById('message').value;
+
         if (stompClient && stompClient.connected) {
+            /**
+             * Sends a message to the server.
+             * @param {string} destination - The endpoint to send the message to.
+             * @param {Object} headers - Optional headers for the message.
+             * @param {string} body - The message body to send.
+             */
             stompClient.send('/app/sendMessage', {}, message);
             console.log('Message sent:', message);
         } else {
@@ -134,7 +184,9 @@
         }
     }
 
+    // Automatically connect when the script is executed
     connect();
+
 </script>
 </body>
 </html>
